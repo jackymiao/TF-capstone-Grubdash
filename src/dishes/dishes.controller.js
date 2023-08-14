@@ -22,19 +22,6 @@ function dishExist(req, res, next) {
   }
 }
 
-// function validateProperty(property) {
-//   return (req, res, next)=>{
-//     const {data={}} = req.body;
-//     if (!data[property]) {
-//       next({
-//         status: 400,
-//         message: `Dish must include a ${property}`,
-//       });
-//     } else {
-//       next();
-//     }
-//   };
-// }
 // function bodyDataHas(propertyName) {
 //   return function (req, res, next) {
 //     const { data = {} } = req.body;
@@ -47,10 +34,23 @@ function dishExist(req, res, next) {
 //     });
 //   };
 // }
+//need update
+function validateProperties(req, res, next){
+ let properties = ["name", "description", "price","image_url"];
+ for (let property of properties){
+   if(!req.body.data[property]){
+    next({
+      status:400,
+      message:`Must include a ${property}`
+   })
+   }
+ }
+ next()
+}
 
 function validatePrice(req, res, next) {
   const { price } = req.body.data;
-  if (price <= 0 || !isFinite(price)) {
+  if (price <= 0 || typeof(price)!=="number") {
     next({
       status: 400,
       message: "Dish must have a price that is an integer greater than 0",
@@ -80,6 +80,19 @@ const create = (req, res, next) => {
   });
 };
 
+function checkDishId(req, res, next){
+  if(req.body.data.id === req.params.dishId){
+    next()
+  }else if(!req.body.data.id){
+    next()
+  }else{
+    next({
+      status:400,
+      message:`Dish id does not match route id. Dish: ${req.body.data.id}, Route: ${req.params.dishId}`
+    })
+  }
+}
+
 const update = (req, res, next) => {
   const { name, description, price, image_url } = req.body.data;
   const updateDish = res.locals.dish;
@@ -98,8 +111,8 @@ const read = (req, res, next) => {
 
 module.exports = {
   list,
-  create:create,
-  update: [dishExist, validatePrice, update],
+  create:[ validateProperties, validatePrice, create],
+  update: [dishExist,checkDishId, validateProperties, validatePrice, update],
   read: [dishExist, read]
 };
 // create: [validateProperty, validatePrice, create],
