@@ -8,6 +8,7 @@ const nextId = require("../utils/nextId");
 
 // TODO: Implement the /dishes handlers needed to make the tests pass
 
+// Middleware: Check if the dish with the given ID exists
 function dishExist(req, res, next) {
   const { dishId } = req.params;
   const foundDish = dishes.find((d) => d.id === dishId);
@@ -22,19 +23,7 @@ function dishExist(req, res, next) {
   }
 }
 
-// function bodyDataHas(propertyName) {
-//   return function (req, res, next) {
-//     const { data = {} } = req.body;
-//     if (data[propertyName]) {
-//       return next();
-//     }
-//     next({
-//         status: 400,
-//         message: `Must include a ${propertyName}`
-//     });
-//   };
-// }
-//need update
+// Middleware: Validate if the required properties exist in the request body
 function validateProperties(req, res, next){
  let properties = ["name", "description", "price","image_url"];
  for (let property of properties){
@@ -48,6 +37,7 @@ function validateProperties(req, res, next){
  next()
 }
 
+// Middleware: Validate the price of the dish
 function validatePrice(req, res, next) {
   const { price } = req.body.data;
   if (price <= 0 || typeof(price)!=="number") {
@@ -60,26 +50,7 @@ function validatePrice(req, res, next) {
   }
 }
 
-const list = (req, res, next) => {
-  res.json({ data: dishes });
-};
-
-const create = (req, res, next) => {
-  const { name, description, price, image_url } = req.body.data;
-  const newDish = {
-    name:name,
-    description:description,
-    price:price,
-    image_url:image_url,
-    id:nextId()
-  }
-  // console.log(newDish)
-  dishes.push(newDish)
-  res.status(201).json({
-    data: newDish
-  });
-};
-
+// Middleware: Check if the dish ID in the request body matches the ID in the route parameters
 function checkDishId(req, res, next){
   if(req.body.data.id === req.params.dishId){
     next()
@@ -93,6 +64,32 @@ function checkDishId(req, res, next){
   }
 }
 
+// Handler: Get the list of dishes
+const list = (req, res, next) => {
+  res.json({ data: dishes });
+};
+
+
+// Handler: Create a new dish
+
+const create = (req, res, next) => {
+  const { name, description, price, image_url } = req.body.data;
+  const newDish = {
+    name:name,
+    description:description,
+    price:price,
+    image_url:image_url,
+    id:nextId()
+  }
+  dishes.push(newDish)
+  res.status(201).json({
+    data: newDish
+  });
+};
+
+
+
+// Handler: Update an existing dish
 const update = (req, res, next) => {
   const { name, description, price, image_url } = req.body.data;
   const updateDish = res.locals.dish;
@@ -104,6 +101,8 @@ const update = (req, res, next) => {
     data: updateDish,
   });
 };
+
+// Handler: Get a specific dish by its ID
 
 const read = (req, res, next) => {
     res.status(200).json({data:res.locals.dish})

@@ -8,6 +8,7 @@ const nextId = require("../utils/nextId");
 
 // TODO: Implement the /orders handlers needed to make the tests pass
 
+// Middleware: Check if the order with the given ID exists
 function orderExist(req, res, next) {
   const { orderId } = req.params;
   const foundOrder = orders.find((o) => o.id === orderId);
@@ -22,6 +23,7 @@ function orderExist(req, res, next) {
   }
 }
 
+// Middleware: Ensure required order properties are provided
 function validateProperties(req, res, next) {
   let properties = ["deliverTo", "mobileNumber", "dishes"];
   for (let property of properties) {
@@ -35,6 +37,7 @@ function validateProperties(req, res, next) {
   next();
 }
 
+// Middleware: Ensure the order has valid dishes
 function validateDishes(req, res, next) {
   const { dishes } = req.body.data;
 
@@ -48,6 +51,7 @@ function validateDishes(req, res, next) {
   }
 }
 
+// Middleware: Check each dish in the order for a valid quantity
 function validateDishQuantity(req, res, next) {
   const { dishes } = req.body.data;
   for (let index in dishes) {
@@ -61,6 +65,7 @@ function validateDishQuantity(req, res, next) {
   next();
 }
 
+// Middleware: Ensure the order ID in request matches the route ID
 function checkOrderId(req, res, next) {
   if (req.body.data.id === req.params.orderId) {
     next();
@@ -74,6 +79,7 @@ function checkOrderId(req, res, next) {
   }
 }
 
+// Middleware: Validate the status of the order
 function validateStatus(req, res, next) {
   const { status } = req.body.data;
   res.locals.status = status;
@@ -88,6 +94,7 @@ function validateStatus(req, res, next) {
   }
 }
 
+// Middleware: Ensure the status isn't "delivered", as such orders can't be modified
 function validateDeliveredStatus(req, res, next){
     const {status} = req.body.data;
     if(status==="delivered"){
@@ -100,6 +107,7 @@ function validateDeliveredStatus(req, res, next){
     }
 }
 
+// Middleware: Check if the order is still pending (only pending orders can be deleted)
 function checkStatus(req, res, next){
     const status = res.locals.order.status;
     if(status!=="pending"){
@@ -112,14 +120,17 @@ function checkStatus(req, res, next){
     }
 }
 
+// Handler: Return a list of all orders
 const list = (req, res, next) => {
   res.json({ data: orders });
 };
 
+// Handler: Get details of a specific order
 const read = (req, res, next) => {
   res.json({ data: res.locals.order });
 };
 
+// Handler: Update an existing order
 const update = (req, res, next) => {
   const { deliverTo, mobileNumber, status, dishes } = req.body.data;
   const order = res.locals.order;
@@ -130,6 +141,7 @@ const update = (req, res, next) => {
   res.json({ data: order });
 };
 
+// Handler: Create a new order
 const create = (req, res, next) => {
   const { deliverTo, mobileNumber, dishes } = req.body.data;
   const newOrder = {
@@ -144,6 +156,7 @@ const create = (req, res, next) => {
   });
 };
 
+// Handler: Delete an existing order
 const destroy = (req, res, next)=>{
   const indexOfOrder = orders.findIndex(o=>o.id===res.locals.order.id)
   orders.splice(indexOfOrder, 1);
