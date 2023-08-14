@@ -102,9 +102,7 @@ function validateDeliveredStatus(req, res, next){
 
 function checkStatus(req, res, next){
     const status = res.locals.order.status;
-    // const status = req.body.data.status;
     if(status!=="pending"){
-        console.log("thisis status ----", status)
         next({
             status:400,
             message:"An order cannot be deleted unless it is pending."
